@@ -1,3 +1,8 @@
+/**
+ * Test Arduino UNO with ultrasonic sensor
+ * Schema: https://wokwi.com/projects/395127928831719425
+ */
+
 #include <Wire.h>
 #include <hd44780.h>
 #include <hd44780ioClass/hd44780_I2Cexp.h> // include i/o class header
