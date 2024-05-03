@@ -13,6 +13,8 @@ hd44780_I2Cexp lcd; // declare lcd object: auto locate & config display for hd44
 #define PIN_ECHO 12
 #define PIN_LED 3
 
+float distance = 0;
+
 void setup()
 {
 
@@ -40,33 +42,42 @@ void loop()
     delayMicroseconds(10);
     digitalWrite(PIN_TRIG, LOW);
 
-    int duration = pulseIn(PIN_ECHO, HIGH);
-
     // Use 343 metres per second as speed of sound
-    float distance = duration * 0.034 / 2;
+    int duration = pulseIn(PIN_ECHO, HIGH);
+    distance = duration * 0.034 / 2;
 
-    if (distance <= 10)
-    {
+    // Turn on the LED and display the distance on the LCD
+    if (distance > 0 && distance < 30)
         digitalWrite(PIN_LED, HIGH);
-    }
     else
     {
+        // Turn off the LED
         digitalWrite(PIN_LED, LOW);
     }
 
-    lcd.backlight();
-    lcd.setCursor(0, 0);
-    lcd.print("Hladina: ");
-    lcd.print(distance);
-    lcd.print("cm");
+    if (distance > 0 && distance < 20)
+    {
+        lcd.backlight();
+        lcd.setCursor(0, 0);
+        lcd.print(distance);
+        lcd.print(" cm, 10");
+        lcd.print((char)223);
+        lcd.print("C");
 
-    lcd.setCursor(0, 1);
-    lcd.print("Zbyva: ");
-    lcd.print(getDays(distance));
-    lcd.print(" den");
+        lcd.setCursor(0, 1);
+        lcd.print("Remaining: ");
+        lcd.print(getDays(distance));
+        lcd.print(" d.");
 
-    delay(3000);
-    lcd.clear();
+        delay(3000);
+        lcd.clear();
+    }
+
+    else
+    {
+        // Turn off the LCD backlight
+        lcd.noBacklight();
+    }
 }
 
 int getDays(int distance)
