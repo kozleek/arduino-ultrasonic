@@ -1,22 +1,30 @@
+#include <OneWire.h>
+#include <Wire.h>
+#include <hd44780.h>
+#include <hd44780ioClass/hd44780_I2Cexp.h> // include i/o class header
+#include <DallasTemperature.h>
+
 /**
  * Test Arduino UNO with ultrasonic sensor
  * Schema: https://wokwi.com/projects/395127928831719425
  */
 
-#include <Wire.h>
-#include <hd44780.h>
-#include <hd44780ioClass/hd44780_I2Cexp.h> // include i/o class header
-
 hd44780_I2Cexp lcd; // declare lcd object: auto locate & config display for hd44780 chip
 
-#define PIN_TRIG 13
 #define PIN_ECHO 12
+#define PIN_TRIG 11
 #define PIN_LED 3
+#define PIN_TEMP 2
 
 float distance = 0;
 
+OneWire oneWire(PIN_TEMP);           // Inicializace OneWire sběrnice na daném pinu
+DallasTemperature sensors(&oneWire); // Inicializace čidla DallasTemperature
+
 void setup()
 {
+    // initialize temperature sensor
+    sensors.begin();
 
     // initialize ultrasonic
     pinMode(PIN_TRIG, OUTPUT);
@@ -29,7 +37,7 @@ void setup()
     // initialize lcd screen
     lcd.begin(16, 2);
     lcd.backlight();
-    lcd.print("Ultrasonic v1.0");
+    lcd.print("Ultrasonic v1.6");
     delay(1000);
     lcd.clear();
     lcd.noBacklight();
@@ -57,26 +65,31 @@ void loop()
 
     if (distance > 0 && distance < 20)
     {
+        // Start a new measurement for temperature
+        sensors.requestTemperatures();                // Požádání čidla o měření teploty
+        int temperature = sensors.getTempCByIndex(0); // Přečtení teploty z čidla
+        // temperature = round(temperature * 10) / 10.0; // Zaokrouhlení na jedno desetinné místo
+
         lcd.backlight();
         lcd.setCursor(0, 0);
         lcd.print(distance);
-        lcd.print(" cm, 10");
+        lcd.print("cm, ");
+        lcd.print(temperature);
         lcd.print((char)223);
         lcd.print("C");
 
         lcd.setCursor(0, 1);
-        lcd.print("Remaining: ");
+        lcd.print("Days: ");
         lcd.print(getDays(distance));
-        lcd.print(" d.");
 
         delay(3000);
-        lcd.clear();
     }
 
     else
     {
         // Turn off the LCD backlight
         lcd.noBacklight();
+        lcd.clear();
     }
 }
 
